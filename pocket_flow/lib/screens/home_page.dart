@@ -1,118 +1,160 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pocket_flow/screens/notification_screen.dart';
-import '../widgets/summary_expense_widget.dart';
+import 'package:pocket_flow/screens/transaction_page.dart';
+import 'notification_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class Homepage extends StatelessWidget {
+  const Homepage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    final double height = MediaQuery.of(context).size.height;
-    final double width = MediaQuery.of(context).size.width;
-
     return Container(
       color: Colors.white,
       child: SafeArea(
-        bottom: false,
         child: Scaffold(
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  width: width,
-                  height: height * 0.12,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: width * 0.3,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Text(
-                              "฿",
-                              style: TextStyle(fontSize: 35),
-                            ),
-                            Text(
-                              "0",
-                              style: TextStyle(fontSize: 35),
-                            ),
-                            Icon(
-                              CupertinoIcons.eye_fill,
-                              size: 30,
-                            ),
-                          ],
+          body: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.white,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ยอดเงินทั้งหมด:',
+                          style: TextStyle(fontSize: 16, color: Colors.black),
                         ),
-                      ),
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => NotificationScreen(),
+                        InkWell(
+                            onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NotificationPage()),
                                 ),
-                              );
-                            },
-                            child: Icon(
-                              CupertinoIcons.bell_solid,
-                              size: 30,
+                            child:
+                                Icon(Icons.notifications, color: Colors.black)),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '\$1,200',
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'ธุรกรรมล่าสุด',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const TransactionPage(),
                             ),
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFEFF1F5),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Text(
+                              'ดูรายละเอียดเพิ่มเติม',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    SizedBox(height: 16),
+                    DefaultTabController(
+                      length: 2,
+                      child: Column(
+                        children: [
+                          TabBar(
+                            tabs: [
+                              Tab(text: 'วันนี้'),
+                              Tab(text: 'เดือนนี้'),
+                            ],
                           ),
                           SizedBox(
-                            width: 10,
+                            height: 400,
+                            child: TabBarView(
+                              children: [
+                                _buildTransactionList(),
+                                _buildTransactionList(),
+                              ],
+                            ),
                           ),
                         ],
-                      )
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(
-                  height: 15,
-                ),
-                SummaryExpenseWidget(
-                  width: width,
-                  height: height,
-                  title1: Text("Expense"),
-                  title2: Text("More"),
-                  content1: Text("Content 1"),
-                  content2: Text("Content 2"),
-                  tabName1: Tab(text: "Tab1"),
-                  tabName2: Tab(text: "Tab2"),
-                  bodyColor: Color(0xFFE4D8DC),
-                  tabColor: Color(0xFFC9CCD5),
-                  bgTabColor: Color(0xFFEDEDED),
-                ),
-                SizedBox(
-                  height: 15,
-                ),
-                SummaryExpenseWidget(
-                  width: width,
-                  height: height,
-                  title1: Text("Expense"),
-                  title2: Text("More"),
-                  content1: Text("Content 1"),
-                  content2: Text("Content 2"),
-                  tabName1: Tab(text: "Tab1"),
-                  tabName2: Tab(text: "Tab2"),
-                  bodyColor: Color(0xFFE4D8DC),
-                  tabColor: Color(0xFFC9CCD5),
-                  bgTabColor: Color(0xFFEDEDED),
-                ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  ListView _buildTransactionList() {
+    return ListView(
+      children: [
+        _buildTransactionTile(
+          icon: Icons.arrow_upward,
+          title: 'โอนไปยังบัญชีธนาคาร',
+          subtitle: 'นายประสบ อุบัติเหตุ\n18:45 น.',
+          amount: '780.00',
+        ),
+        Divider(height: 1, color: Colors.black26),
+        _buildTransactionTile(
+          icon: Icons.receipt_long,
+          title: 'ชำระสินค้า/บริการ',
+          subtitle: 'KMUTNB Bill\n17:00 น.',
+          amount: '19,800.00',
+        ),
+        Divider(height: 1, color: Colors.black26),
+        _buildTransactionTile(
+          icon: Icons.arrow_downward,
+          title: 'รับเงินจากบัญชีธนาคาร',
+          subtitle: 'นางน้อย ๆ\n11:03 น.',
+          amount: '41,500.00',
+        ),
+      ],
+    );
+  }
+
+  ListTile _buildTransactionTile(
+      {required IconData icon,
+      required String title,
+      required String subtitle,
+      required String amount}) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.black54),
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 16, color: Colors.black),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(fontSize: 14, color: Colors.black54),
+      ),
+      trailing: Text(
+        '\$$amount  THB',
+        style: TextStyle(fontSize: 16, color: Colors.black),
       ),
     );
   }

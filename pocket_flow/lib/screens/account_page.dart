@@ -1,17 +1,6 @@
-// import 'package:flutter/material.dart';
-
-// class AccountPage extends StatelessWidget {
-//   const AccountPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Center(child: Text("Account Page", style: TextStyle(fontSize: 24))),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
+
+import 'notification_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -22,89 +11,157 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
+  String _selectedOption = 'manage';
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.grey[300],
-          leading: Icon(
-            Icons.arrow_back,
-            color: Colors.green,
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationPage(),
+                ),
+              ),
+              child: Icon(Icons.notifications, color: Colors.black),
+            ),
           ),
-          elevation: 0,
-          title: Text(
-            'Settings',
+        ],
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'Noppanut',
             style: TextStyle(
               color: Colors.black,
-              // fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              Container(
-                color: Colors.white,
-                padding: EdgeInsets.all(16),
-                child: Row(
+      ),
+      body: Container(
+        color: Colors.white,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Divider(),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Color(0xFFB0C4DE),
+                    Text(
+                      'Pocket',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text('ชื่อบัญชี'),
-                    ),
-                    Spacer(),
-                    Icon(
-                      Icons.edit,
-                      color: Colors.green,
-                    ),
+                    DropdownButton<String>(
+                      value: _selectedOption,
+                      style: TextStyle(
+                          color: Colors.black), // Make it look like normal text
+                      underline: SizedBox(), // Remove the underline
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedOption = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        'manage', // This should match the default value
+                        'create pocket',
+                        'join pocket',
+                        'delete pocket'
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                    )
                   ],
                 ),
-              ),
-              Divider(),
-              buildListTile(context, 'เบอร์มือถือ', '000-xxx-xx67'),
-              buildListTile(context, 'วันเกิด', '...'),
-              buildListTile(context, 'การจัดการข้อมูลส่วนบุคคล', '...'),
-              Container(
-                color: Colors.grey[200],
-                padding: EdgeInsets.all(16),
-                width: double.infinity,
-                child: Text('ลบบัญชี'),
-              ),
-              Spacer(),
-              GestureDetector(
-                onTap: () {},
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout),
-                      SizedBox(width: 8),
-                      Text('ออกจากระบบ'),
-                    ],
-                  ),
+                SizedBox(height: 8),
+                // Divider(),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildPocketCard('Family', 'เงินครอบครัว', '5 คน'),
+                    _buildPocketCard(
+                        'Ben Inc.', 'สวัสดิการอาหาร\nพนักงาน', '45 คน'),
+                  ],
                 ),
-              ),
-            ],
+                SizedBox(height: 32),
+                _buildSectionTitle('ตั้งค่าการใช้งาน'),
+                _buildMenuItem('บัญชี'),
+                _buildMenuItem('ตั้งค่าปฏิทิน'),
+                _buildMenuItem('เปลี่ยนธีม'),
+                _buildSectionTitle('รายการที่อดไว้'),
+                _buildMenuItem('ส่งออกข้อมูล'),
+                _buildSectionTitle('ใครเล่าให้ฟัง'),
+                _buildMenuItem('คำถามที่เจอบ่อย'),
+                _buildMenuItem('ข้อตกลงและเงื่อนไข'),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget buildListTile(BuildContext context, String title, String subtitle) {
+  Widget _buildPocketCard(String title, String description, String count) {
     return Container(
-      color: Colors.grey[200],
-      child: ListTile(
-        title: Text(title),
-        trailing: Text(subtitle),
+      width: 150,
+      height: 150,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(description),
+          SizedBox(height: 8),
+          Text(
+            count,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(String title) {
+    return ListTile(
+      title: Text(title),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16),
     );
   }
 }

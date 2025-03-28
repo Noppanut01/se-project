@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pocket_flow/screens/add_transaction_page.dart';
 import 'package:pocket_flow/screens/account_page.dart';
-import 'package:pocket_flow/screens/transaction_page.dart';
+import 'package:pocket_flow/screens/home_page.dart';
 
 class BottomNavbarWidget extends StatefulWidget {
   const BottomNavbarWidget({super.key});
@@ -14,7 +13,7 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    TransactionPage(),
+    Homepage(),
     SizedBox.shrink(),
     AccountPage(),
   ];
@@ -28,37 +27,95 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
   }
 
   void _showFloatingModal() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true, // Allows better height control
-      backgroundColor:
-          Colors.transparent, // Transparent background for floating effect
-      barrierColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).size.height *
-                0.115, // Lift modal above navbar
+        String name = '';
+        String amount = '';
+        String type = '';
+
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // Rounded corners
           ),
           child: Container(
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(20),
-              ), // Rounded top corners
-              // boxShadow: [
-              //   BoxShadow(
-              //     color: Colors.black26,
-              //     blurRadius: 10,
-              //     spreadRadius: 2,
-              //   ),
-              // ],
+              color: Colors.white, // White background
+              borderRadius: BorderRadius.circular(16.0),
             ),
-            child: AddTransactionPage(), // Your modal content
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min, // Make the dialog content minimal size
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add Transaction',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    name = value;
+                  },
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Amount',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    amount = value;
+                  },
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Type',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    type = value;
+                  },
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        addTransaction(name, amount, type);
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Submit',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  void addTransaction(String name, String amount, String type) {
+    // Logic to add transaction goes here
   }
 
   @override
