@@ -1,47 +1,39 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from database import get_db
 from pydantic import BaseModel
-from datetime import datetime, date
-from app import database
-from psycopg2.extras import RealDictCursor
+from models import Transaction  # Import the updated SQLAlchemy model
 
 app = FastAPI()
 
-# DATABASE_URL = "dbname=postgres user=postgres password=postgres host=localhost port=5432"
-
-# def get_db_connection():
-#     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-
-class Transaction(BaseModel):
-    description: str
+# Pydantic Model for Input
+class TransactionCreate(BaseModel):
+    name: str
     amount: float
+    type: str
+    user_id: int
+    pocket_id: int
+    category_id: int
+    note: str | None = None
 
-@app.get("/transactions")
-def get_transactions():
-    conn = database.get_db_connection()
-    cursor = conn.cursor()
-
-    today = date.today()
-    first_day_of_month = today.replace(day=1)
-
-    cursor.execute("SELECT * FROM transactions WHERE date = %s", (today,))
-    transactions_today = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM transactions WHERE date >= %s", (first_day_of_month,))
-    transactions_this_month = cursor.fetchall()
-
-    conn.close()
-    return {"today": transactions_today, "this_month": transactions_this_month}
-
-@app.post("/add_transaction")
-def add_transaction(transaction: Transaction):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "INSERT INTO transactions (description, amount, date, time) VALUES (%s, %s, %s, %s)",
-        (transaction.description, transaction.amount, date.today(), datetime.now().time()),
+# Insert Data into PostgreSQL
+@app.post("/add_transaction/")
+def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
+    new_transaction = Transaction(
+        name=data.name,
+        amount=data.amount,
+        type=data.type,
+        user_id=data.user_id,
+        pocket_id=data.pocket_id,
+        category_id=data.category_id,
+        note=data.note
     )
+    db.add(new_transaction)
+    db.commit()
+    db.refresh(new_transaction)
+    return new_transaction
 
-    conn.commit()
-    conn.close()
-    return {"message": "Transaction added successfully"}
+# Fetch All Transactions from PostgreSQL
+@app.get("/get_transactions/")
+def get_transactions(db: Session = Depends(get_db)):
+    return db.query(Transaction).all()
