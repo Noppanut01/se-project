@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:pocket_flow/screens/test.dart';
-import 'package:pocket_flow/widgets/bottom_navbar_widget.dart';
+import 'package:pocket_flow/screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,8 +19,9 @@ class MyApp extends StatelessWidget {
         textTheme: TextTheme(
           bodyMedium: TextStyle(fontSize: 14, color: Colors.black),
         ),
+        fontFamily: 'Kanit',
       ),
-      home: const BottomNavbarWidget(),
+      home: SplashScreen(),
     );
   }
 }
