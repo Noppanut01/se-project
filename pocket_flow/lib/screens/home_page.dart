@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pocket_flow/screens/transaction_page.dart';
+import 'package:pocket_flow/screens/summary_page.dart';
 import 'notification_page.dart';
 
 class Homepage extends StatelessWidget {
