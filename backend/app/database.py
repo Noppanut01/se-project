@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, String, Date, DECIMAL
-SQLALCHEMY_DATABASE_URL = 'postgresql://noppanut:postgres@localhost:5432/pocket_flow'
+SQLALCHEMY_DATABASE_URL = 'postgresql://noppanut:postgres@localhost:5432/pocket_flow_v1'
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
