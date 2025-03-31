@@ -1,9 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:pocket_flow/screens/summary_page.dart';
+import 'package:pocket_flow/services/api_services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_page.dart';
 
-class Homepage extends StatelessWidget {
+class Homepage extends StatefulWidget {
   const Homepage({super.key});
+
+  @override
+  State<Homepage> createState() => _HomepageState();
+}
+
+class _HomepageState extends State<Homepage> {
+  ApiService apiService = ApiService();
+  int? userId;
+  double _totalExpense = 0.0;
+
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId');
+      debugPrint("Loaded userId: $userId");
+    });
+  }
+
+  Future<void> _loadTotalExpense() async {
+    if (userId == null) {
+      debugPrint("User ID is null, cannot fetch total expense.");
+      return;
+    }
+    final total = await apiService.getTotalExpense(userId!);
+    debugPrint("Fetched total expense: $total");
+    setState(() {
+      _totalExpense = total; // Ensure it's never null
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId().then((_) {
+      _loadTotalExpense();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,23 +64,23 @@ class Homepage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'ยอดเงินทั้งหมด:',
+                          'ยอดใช่จ่าย:',
                           style: TextStyle(fontSize: 16, color: Colors.black),
                         ),
                         InkWell(
-                            onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NotificationPage()),
-                                ),
-                            child:
-                                Icon(Icons.notifications, color: Colors.black)),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationPage(),
+                            ),
+                          ),
+                          child: Icon(Icons.notifications, color: Colors.black),
+                        ),
                       ],
                     ),
                     SizedBox(height: 8),
                     Text(
-                      '\$1,200',
+                      "฿ ${_totalExpense.toStringAsFixed(2)}",
                       style:
                           TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                     ),
@@ -89,11 +128,111 @@ class Homepage extends StatelessWidget {
                             ],
                           ),
                           SizedBox(
-                            height: 400,
+                            height: MediaQuery.of(context).size.height * 0.58,
                             child: TabBarView(
                               children: [
-                                _buildTransactionList(),
-                                _buildTransactionList(),
+                                FutureBuilder<List<Map<String, dynamic>>>(
+                                  future:
+                                      apiService.getTransactionsByUser(userId!),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    } else if (snapshot.hasError) {
+                                      return Center(
+                                        child:
+                                            Text('No transactions available.'),
+                                      );
+                                    } else if (!snapshot.hasData ||
+                                        snapshot.data!.isEmpty) {
+                                      return Center(
+                                        child:
+                                            Text('No transactions available.'),
+                                      );
+                                    } else {
+                                      final transactions = snapshot.data!
+                                        ..sort((a, b) =>
+                                            b['id'].compareTo(a['id']));
+                                      return ListView.builder(
+                                        itemCount: transactions.length,
+                                        itemBuilder: (context, index) {
+                                          final transaction =
+                                              transactions[index];
+                                          final categoryId =
+                                              transaction['category_id'];
+                                          return FutureBuilder<
+                                              Map<String, dynamic>>(
+                                            future: apiService
+                                                .getCategoryById(categoryId),
+                                            builder: (context, catSnapshot) {
+                                              if (catSnapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return ListTile(
+                                                  title: Text("Loading..."),
+                                                  subtitle: Text(transaction[
+                                                      'description']),
+                                                  trailing: Text(
+                                                      '${transaction['amount']} THB'),
+                                                );
+                                              } else if (catSnapshot.hasError) {
+                                                return ListTile(
+                                                  title:
+                                                      Text("Unknown Category"),
+                                                  subtitle: Text(transaction[
+                                                      'description']),
+                                                  trailing: Text(
+                                                      '${transaction['amount']} THB'),
+                                                );
+                                              } else {
+                                                final category =
+                                                    catSnapshot.data!;
+                                                return ListTile(
+                                                  leading:
+                                                      category['img_url'] !=
+                                                              null
+                                                          ? Image.asset(
+                                                              category['type'] ==
+                                                                      'ex'
+                                                                  ? "assets/categories/expense/${category['img_url']}"
+                                                                  : "assets/categories/income/${category['img_url']}",
+                                                              width: 40,
+                                                              height: 40,
+                                                            )
+                                                          : Icon(Icons.category,
+                                                              color: Colors
+                                                                  .black54),
+                                                  title: Text(
+                                                      category['cat_name']),
+                                                  subtitle: Text(transaction[
+                                                      'description']),
+                                                  trailing: Text(
+                                                    '${transaction['amount']} THB',
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: category['type'] ==
+                                                              'ex'
+                                                          ? Colors.red
+                                                          : Colors.green,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          );
+                                        },
+                                      );
+                                    }
+                                  },
+                                ),
+                                Container(
+                                  color: Colors.grey[200],
+                                  child: Center(
+                                    child: Text('This month transactions'),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -106,55 +245,6 @@ class Homepage extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  ListView _buildTransactionList() {
-    return ListView(
-      children: [
-        _buildTransactionTile(
-          icon: Icons.arrow_upward,
-          title: 'โอนไปยังบัญชีธนาคาร',
-          subtitle: 'นายประสบ อุบัติเหตุ\n18:45 น.',
-          amount: '780.00',
-        ),
-        Divider(height: 1, color: Colors.black26),
-        _buildTransactionTile(
-          icon: Icons.receipt_long,
-          title: 'ชำระสินค้า/บริการ',
-          subtitle: 'KMUTNB Bill\n17:00 น.',
-          amount: '19,800.00',
-        ),
-        Divider(height: 1, color: Colors.black26),
-        _buildTransactionTile(
-          icon: Icons.arrow_downward,
-          title: 'รับเงินจากบัญชีธนาคาร',
-          subtitle: 'นางน้อย ๆ\n11:03 น.',
-          amount: '41,500.00',
-        ),
-      ],
-    );
-  }
-
-  ListTile _buildTransactionTile(
-      {required IconData icon,
-      required String title,
-      required String subtitle,
-      required String amount}) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.black54),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, color: Colors.black),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(fontSize: 14, color: Colors.black54),
-      ),
-      trailing: Text(
-        '\$$amount  THB',
-        style: TextStyle(fontSize: 16, color: Colors.black),
       ),
     );
   }
