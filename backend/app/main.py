@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from models import Transaction, User, Category
 from database import get_db
 from pydantic import BaseModel,EmailStr
@@ -41,6 +42,26 @@ class TransactionCreate(BaseModel):
         
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
+
+
+
+@app.get("/total_expense/{user_id}")
+def get_total_expense(user_id: int, db: Session = Depends(get_db)):
+    total = (
+        db.query(func.sum(Transaction.amount))
+        .join(Category, Transaction.category_id == Category.id)  # Join with Category table
+        .filter(Transaction.user_id == user_id, Category.type == "ex")  # Filter only expenses
+        .scalar()
+    )
+    return {"total_expense": total or 0.0}
+
+@app.get("/get_users/")
+def get_all_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    if not users:
+        raise HTTPException(status_code=404, detail="No users found")
+    return [{"id": user.id, "username": user.username, "email": user.email} for user in users]
 
 @app.get("/get_user/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
@@ -165,7 +186,7 @@ def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
 
 @app.get("/get_transactions/")
 def get_transactions(db: Session = Depends(get_db)):
-    return db.query(Transaction).all()
+    return db.query(Transaction).order_by(Transaction.id.desc()).all()
 
 
 @app.get("/get_transactions/{user_id}")
@@ -183,6 +204,12 @@ def get_categories(db: Session = Depends(get_db)):
     categories = db.query(Category).all()
     return categories
 
+@app.get("/get_categories/{category_id}", response_model=CategoryResponse)
+def get_category_by_id(category_id: int, db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
 
 @app.put("/update_transaction/{transaction_id}")
 def update_transaction(

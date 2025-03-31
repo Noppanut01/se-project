@@ -29,7 +29,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(DECIMAL(10, 2), nullable=False)
     description = Column(Text, nullable=True)
-    date = Column(TIMESTAMP, default=datetime.utcnow)
+    date = Column(TIMESTAMP, default=datetime.utcnow, nullable=False)
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
