@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pocket_flow/services/api_services.dart';
 import 'package:pocket_flow/widgets/bottom_navbar_widget.dart';
 import 'package:pocket_flow/widgets/password_visiblility_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'sign_up_page.dart';
 
 class SignInPage extends StatefulWidget {
@@ -22,22 +23,64 @@ class _SignInPageState extends State<SignInPage> {
   bool _obscurePassword = true;
 
   final ApiService _apiService = ApiService(); // Initialize ApiService
-
   // Sign in function
+
   Future<void> _signIn() async {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
     try {
-      await _apiService.authenticateUser(email, password);
-      // If signup is successful, navigate to the SignInPage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => BottomNavbarWidget()),
-      );
+      final response = await _apiService.authenticateUser(email, password);
+
+      if (response['message'] == "Authenticated successfully") {
+        // Set login status to true and store email
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        // Store email in SharedPreferences
+        _fetchUserIdByEmail(email); // Fetch userId by email
+
+        // Navigate to home page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => BottomNavbarWidget()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Invalid email or password.';
+        });
+      }
     } catch (error) {
       setState(() {
-        _errorMessage = 'Invalid email or password';
+        _errorMessage = 'Authentication failed. Please try again.';
+      });
+    }
+  }
+
+  Future<void> _fetchUserIdByEmail(String email) async {
+    try {
+      final users = await _apiService.getAllUsers();
+      final user = users.firstWhere(
+        (user) => user['email'] == email,
+        orElse: () => {},
+      );
+
+      if (user.isNotEmpty) {
+        final userId = user['id'];
+
+        // Store userId in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+
+        // You can also return userId if you want to use it elsewhere
+        return userId;
+      } else {
+        setState(() {
+          _errorMessage = 'User not found.';
+        });
+      }
+    } catch (error) {
+      setState(() {
+        _errorMessage = 'Failed to fetch user ID. Please try again.';
       });
     }
   }
@@ -55,9 +98,10 @@ class _SignInPageState extends State<SignInPage> {
               child: Form(
                 key: _formKey,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 40),
+                    SizedBox(height: 80),
                     Center(
                       child: Image.asset('assets/app/logo.png', height: 80),
                     ),

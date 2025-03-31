@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'notification_page.dart';
+import 'sign_in_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -12,6 +14,15 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   String _selectedOption = 'manage';
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    Navigator.pushReplacement(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(builder: (context) => SignInPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +120,7 @@ class _AccountPageState extends State<AccountPage> {
                 _buildSectionTitle('ใครเล่าให้ฟัง'),
                 _buildMenuItem('คำถามที่เจอบ่อย'),
                 _buildMenuItem('ข้อตกลงและเงื่อนไข'),
+                ElevatedButton(onPressed: _logout, child: Text('ออกจากระบบ')),
               ],
             ),
           ),

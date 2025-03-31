@@ -20,7 +20,8 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to sign up');
     }
@@ -39,7 +40,8 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Authentication failed');
     }
@@ -59,7 +61,8 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to update user');
     }
@@ -73,9 +76,25 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to delete user');
+    }
+  }
+
+  // Get All Users API
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final response = await http.get(
+      Uri.parse('$url/get_users/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
+      return responseData.map((e) => e as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to fetch all users');
     }
   }
 
@@ -87,15 +106,16 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to fetch user');
     }
   }
 
   // Add Transaction API
-  Future<Map<String, dynamic>> addTransaction(double amount, String description,
-      int categoryId, int userId, String note) async {
+  Future<Map<String, dynamic>> addTransaction(
+      double amount, String description, int categoryId, int userId) async {
     final response = await http.post(
       Uri.parse('$url/add_transaction/'),
       headers: {'Content-Type': 'application/json'},
@@ -104,12 +124,12 @@ class ApiService {
         'description': description,
         'category_id': categoryId,
         'user_id': userId,
-        'note': note,
       }),
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to add transaction');
     }
@@ -123,7 +143,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> responseData = json.decode(response.body);
+      List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
       return responseData.map((e) => e as Map<String, dynamic>).toList();
     } else {
       throw Exception('Failed to fetch transactions');
@@ -138,7 +158,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> responseData = json.decode(response.body);
+      List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
       return responseData.map((e) => e as Map<String, dynamic>).toList();
     } else {
       throw Exception('Failed to fetch transactions for user');
@@ -153,10 +173,21 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      List<dynamic> responseData = json.decode(response.body);
+      // Use utf8.decode to ensure proper decoding if needed
+      List<dynamic> responseData = json.decode(utf8.decode(response.bodyBytes));
       return responseData.map((e) => e as Map<String, dynamic>).toList();
     } else {
       throw Exception('Failed to fetch categories');
+    }
+  }
+
+  Future<Map<String, dynamic>> getCategoryById(int categoryId) async {
+    final response =
+        await http.get(Uri.parse('$url/get_categories/$categoryId'));
+    if (response.statusCode == 200) {
+      return json.decode(utf8.decode(response.bodyBytes));
+    } else {
+      throw Exception('Failed to fetch category');
     }
   }
 
@@ -168,9 +199,26 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body); // Return the response as a map
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
     } else {
       throw Exception('Failed to delete transaction');
+    }
+  }
+
+  // Get Total Expense API
+  Future<double> getTotalExpense(int userId) async {
+    final response = await http.get(
+      Uri.parse('$url/total_expense/$userId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData =
+          json.decode(utf8.decode(response.bodyBytes));
+      return (responseData['total_expense'] as num).toDouble();
+    } else {
+      throw Exception('Failed to fetch total expense');
     }
   }
 }

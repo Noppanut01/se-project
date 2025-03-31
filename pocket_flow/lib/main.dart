@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pocket_flow/screens/splash_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,9 +18,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
         textTheme: TextTheme(
-          bodyMedium: TextStyle(fontSize: 14, color: Colors.black),
+          bodyMedium: GoogleFonts.kanit(fontSize: 14, color: Colors.black),
         ),
-        fontFamily: 'Kanit',
+        // You can also set the entire app's font using GoogleFonts
+        fontFamily: GoogleFonts.kanit().fontFamily,
       ),
       home: SplashScreen(),
     );

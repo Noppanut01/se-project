@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pocket_flow/screens/account_page.dart';
+import 'package:pocket_flow/screens/add_transaction_page.dart';
 import 'package:pocket_flow/screens/home_page.dart';
 
 class BottomNavbarWidget extends StatefulWidget {
@@ -26,104 +27,14 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
     }
   }
 
-  void _showFloatingModal() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String name = '';
-        String amount = '';
-        String type = '';
-
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0), // Rounded corners
-          ),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white, // White background
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: Column(
-              mainAxisSize:
-                  MainAxisSize.min, // Make the dialog content minimal size
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Add Transaction',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    name = value;
-                  },
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Amount',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    amount = value;
-                  },
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Type',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    type = value;
-                  },
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        addTransaction(name, amount, type);
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Submit',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void addTransaction(String name, String amount, String type) {
-    // Logic to add transaction goes here
-  }
+  void addTransaction(String name, String amount, String type) {}
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: _pages[_selectedIndex], // Dynamically change body content
+      body: _pages[_selectedIndex],
       bottomNavigationBar: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
@@ -143,7 +54,7 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
               BottomNavigationBarItem(
                 icon: SizedBox.shrink(),
                 label: "",
-              ), // Floating button space
+              ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
                 label: "Account",
@@ -154,7 +65,12 @@ class _BottomNavbarWidgetState extends State<BottomNavbarWidget> {
             bottom: 35,
             left: width / 2 - (width * 0.15) / 2,
             child: InkWell(
-              onTap: _showFloatingModal, // Open floating modal
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddTransactionPage(),
+                ),
+              ),
               child: Container(
                 width: width * 0.15,
                 height: width * 0.15,
