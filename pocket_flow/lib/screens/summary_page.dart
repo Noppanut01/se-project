@@ -270,6 +270,7 @@ class _SummaryPageState extends State<SummaryPage> {
                                             ),
                                             child: Text(
                                               category,
+                                              overflow: TextOverflow.ellipsis,
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,

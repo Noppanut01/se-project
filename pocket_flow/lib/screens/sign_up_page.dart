@@ -40,7 +40,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     } catch (error) {
       setState(() {
-        _errorMessage = 'Failed to sign up. Please try again.';
+        _errorMessage = 'Username or email already taken';
       });
     }
   }

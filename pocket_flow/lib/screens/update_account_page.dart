@@ -43,9 +43,10 @@ class _UpdateAccountPageState extends State<UpdateAccountPage> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User updated successfully')),
+        const SnackBar(
+          content: Text('User updated successfully'),
+        ),
       );
-
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -199,7 +200,7 @@ class _UpdateAccountPageState extends State<UpdateAccountPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text('Update Account'),
+        title: const Text('Edit Account'),
       ),
       body: Container(
         color: Colors.white,
