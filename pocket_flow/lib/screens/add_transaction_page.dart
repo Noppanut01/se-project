@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pocket_flow/screens/categories_page.dart';
+import 'package:pocket_flow/screens/loading_page.dart';
 import 'package:pocket_flow/services/api_services.dart';
+import 'package:pocket_flow/widgets/bottom_navbar_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart'; // Import this for input filtering
 
 class AddTransactionPage extends StatefulWidget {
   const AddTransactionPage({super.key});
@@ -151,7 +154,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     SizedBox(height: 10),
                     TextField(
                       controller: amountController,
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(
+                            r'^\d*\.?\d*$')), // Allow only numbers & decimal
+                      ],
                       style: TextStyle(fontSize: 28),
                       cursorColor: Colors.black,
                       decoration: InputDecoration(
@@ -270,7 +278,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       ),
                       onPressed: () async {
                         String amountText = amountController.text;
-                        String note = noteController.text;
+                        String note = noteController.text.isEmpty
+                            ? isExpense
+                                ? "รายจ่าย"
+                                : "รายรับ"
+                            : noteController.text;
 
                         if (amountText.isEmpty ||
                             selectedCategory == null ||
@@ -291,14 +303,20 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             categoryId,
                             userId!,
                           );
-
                           debugPrint(
                               "Transaction added successfully: $response");
-                          // ignore: use_build_context_synchronously
-                          Navigator.pop(context);
+
+                          Navigator.push(
+                              // ignore: use_build_context_synchronously
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LoadingPage(
+                                        page: BottomNavbarWidget(),
+                                      )));
                         } catch (e) {
                           debugPrint("Failed to add transaction: $e");
-                          debugPrint("$amount $note $userId $categoryId");
+                          debugPrint(
+                              "amount : $amount note : $note cat_id : $categoryId user_id : $userId");
                         }
                       },
                       child: Text(

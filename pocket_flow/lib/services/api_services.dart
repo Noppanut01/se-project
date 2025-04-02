@@ -54,9 +54,9 @@ class ApiService {
       Uri.parse('$url/update_user/$userId'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
-        'username': username,
-        'email': email,
-        'password': password,
+        if (username != null) 'username': username,
+        if (email != null) 'email': email,
+        if (password != null) 'password': password,
       }),
     );
 
@@ -162,6 +162,28 @@ class ApiService {
       return responseData.map((e) => e as Map<String, dynamic>).toList();
     } else {
       throw Exception('Failed to fetch transactions for user');
+    }
+  }
+
+  // Update Transaction API
+  Future<Map<String, dynamic>> updateTransaction(int transactionId,
+      double amount, String description, int categoryId, int userId) async {
+    final response = await http.put(
+      Uri.parse('$url/update_transaction/$transactionId'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'amount': amount,
+        'description': description,
+        'category_id': categoryId,
+        'user_id': userId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(
+          utf8.decode(response.bodyBytes)); // Return the response as a map
+    } else {
+      throw Exception('Failed to update transaction');
     }
   }
 

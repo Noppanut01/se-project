@@ -97,12 +97,9 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update the fields if provided in the request
-    if user.username:
-        db_user.username = user.username
-    if user.email:
-        db_user.email = user.email
-    if user.password:
-        db_user.password = hash_password(user.password)
+    db_user.username = user.username if user.username is not None else db_user.username
+    db_user.email = user.email if user.email is not None else db_user.email
+    db_user.password = hash_password(user.password) if user.password is not None else db_user.password
 
     try:
         db.commit()

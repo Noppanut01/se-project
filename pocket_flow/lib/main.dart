@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
       title: 'Pocket Flow 1.0',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
         textTheme: TextTheme(
           bodyMedium: GoogleFonts.kanit(fontSize: 14, color: Colors.black),

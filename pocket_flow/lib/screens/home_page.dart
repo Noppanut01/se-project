@@ -3,6 +3,7 @@ import 'package:pocket_flow/screens/summary_page.dart';
 import 'package:pocket_flow/services/api_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'notification_page.dart';
+import 'update_transaction_page.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -16,12 +17,53 @@ class _HomepageState extends State<Homepage> {
   int? userId;
   double _totalExpense = 0.0;
 
+  final List<String> thaiWeekdays = [
+    'จันทร์',
+    'อังคาร',
+    'พุธ',
+    'พฤหัสบดี',
+    'ศุกร์',
+    'เสาร์',
+    'อาทิตย์'
+  ];
+
+  final List<String> thaiMonths = [
+    'ม.ค.',
+    'ก.พ.',
+    'มี.ค.',
+    'เม.ย.',
+    'พ.ค.',
+    'มิ.ย.',
+    'ก.ค.',
+    'ส.ค.',
+    'ก.ย.',
+    'ต.ค.',
+    'พ.ย.',
+    'ธ.ค.'
+  ];
+
+  String formattedDate(DateTime selectedDate) {
+    return '${thaiWeekdays[selectedDate.weekday - 1]} '
+        '${selectedDate.day} '
+        '${thaiMonths[selectedDate.month - 1]} '
+        '${selectedDate.year + 543}';
+  }
+
   Future<void> _loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userId = prefs.getInt('userId');
-      debugPrint("Loaded userId: $userId");
-    });
+    int? storedUserId = prefs.getInt('userId');
+
+    if (mounted) {
+      if (storedUserId != null) {
+        setState(() {
+          userId = storedUserId;
+          debugPrint("Loaded userId: $userId");
+        });
+        await _loadTotalExpense();
+      } else {
+        debugPrint("No userId found in SharedPreferences!");
+      }
+    }
   }
 
   Future<void> _loadTotalExpense() async {
@@ -32,16 +74,31 @@ class _HomepageState extends State<Homepage> {
     final total = await apiService.getTotalExpense(userId!);
     debugPrint("Fetched total expense: $total");
     setState(() {
-      _totalExpense = total; // Ensure it's never null
+      _totalExpense = total;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _loadUserId().then((_) {
-      _loadTotalExpense();
-    });
+    _loadUserId();
+  }
+
+  Map<String, List<Map<String, dynamic>>> _groupTransactionsByDate(
+      List<Map<String, dynamic>> transactions) {
+    Map<String, List<Map<String, dynamic>>> groupedTransactions = {};
+
+    for (var transaction in transactions) {
+      String date =
+          transaction['date']; // Assuming the date is in 'YYYY-MM-DD' format
+
+      if (!groupedTransactions.containsKey(date)) {
+        groupedTransactions[date] = [];
+      }
+      groupedTransactions[date]!.add(transaction);
+    }
+
+    return groupedTransactions;
   }
 
   @override
@@ -97,7 +154,7 @@ class _HomepageState extends State<Homepage> {
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const TransactionPage(),
+                              builder: (context) => const SummaryPage(),
                             ),
                           ),
                           child: Container(
@@ -115,129 +172,139 @@ class _HomepageState extends State<Homepage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
                     SizedBox(height: 16),
-                    DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          TabBar(
-                            tabs: [
-                              Tab(text: 'วันนี้'),
-                              Tab(text: 'เดือนนี้'),
-                            ],
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.58,
-                            child: TabBarView(
-                              children: [
-                                FutureBuilder<List<Map<String, dynamic>>>(
-                                  future:
-                                      apiService.getTransactionsByUser(userId!),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return Center(
-                                          child: CircularProgressIndicator());
-                                    } else if (snapshot.hasError) {
-                                      return Center(
-                                        child:
-                                            Text('No transactions available.'),
-                                      );
-                                    } else if (!snapshot.hasData ||
-                                        snapshot.data!.isEmpty) {
-                                      return Center(
-                                        child:
-                                            Text('No transactions available.'),
-                                      );
-                                    } else {
-                                      final transactions = snapshot.data!
-                                        ..sort((a, b) =>
-                                            b['id'].compareTo(a['id']));
-                                      return ListView.builder(
-                                        itemCount: transactions.length,
-                                        itemBuilder: (context, index) {
-                                          final transaction =
-                                              transactions[index];
-                                          final categoryId =
-                                              transaction['category_id'];
-                                          return FutureBuilder<
-                                              Map<String, dynamic>>(
-                                            future: apiService
-                                                .getCategoryById(categoryId),
-                                            builder: (context, catSnapshot) {
-                                              if (catSnapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return ListTile(
-                                                  title: Text("Loading..."),
-                                                  subtitle: Text(transaction[
-                                                      'description']),
-                                                  trailing: Text(
-                                                      '${transaction['amount']} THB'),
-                                                );
-                                              } else if (catSnapshot.hasError) {
-                                                return ListTile(
-                                                  title:
-                                                      Text("Unknown Category"),
-                                                  subtitle: Text(transaction[
-                                                      'description']),
-                                                  trailing: Text(
-                                                      '${transaction['amount']} THB'),
-                                                );
-                                              } else {
-                                                final category =
-                                                    catSnapshot.data!;
-                                                return ListTile(
-                                                  leading:
-                                                      category['img_url'] !=
-                                                              null
-                                                          ? Image.asset(
-                                                              category['type'] ==
-                                                                      'ex'
-                                                                  ? "assets/categories/expense/${category['img_url']}"
-                                                                  : "assets/categories/income/${category['img_url']}",
-                                                              width: 40,
-                                                              height: 40,
-                                                            )
-                                                          : Icon(Icons.category,
-                                                              color: Colors
-                                                                  .black54),
-                                                  title: Text(
-                                                      category['cat_name']),
-                                                  subtitle: Text(transaction[
-                                                      'description']),
-                                                  trailing: Text(
-                                                    '${transaction['amount']} THB',
-                                                    style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: category['type'] ==
-                                                              'ex'
-                                                          ? Colors.red
-                                                          : Colors.green,
+                    // Displaying transactions grouped by date
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: userId != null
+                          ? apiService.getTransactionsByUser(userId!)
+                          : null,
+                      builder: (context, snapshot) {
+                        if (userId == null) {
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else if (snapshot.hasError ||
+                            !snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return Center(
+                              child: Text('No transactions available.'));
+                        } else {
+                          final transactions = snapshot.data!;
+                          transactions
+                              .sort((a, b) => b['id'].compareTo(a['id']));
+                          final groupedTransactions =
+                              _groupTransactionsByDate(transactions);
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: groupedTransactions.keys.length,
+                            itemBuilder: (context, index) {
+                              final date =
+                                  groupedTransactions.keys.elementAt(index);
+                              final transactionsForDate =
+                                  groupedTransactions[date]!;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(height: 20),
+                                  Text(
+                                    formattedDate(DateTime.parse(date)),
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18),
+                                  ),
+                                  SizedBox(height: 8),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: transactionsForDate.length,
+                                    itemBuilder: (context, index) {
+                                      final transaction =
+                                          transactionsForDate[index];
+                                      final categoryId =
+                                          transaction['category_id'];
+
+                                      return FutureBuilder<
+                                          Map<String, dynamic>>(
+                                        future: apiService
+                                            .getCategoryById(categoryId),
+                                        builder: (context, catSnapshot) {
+                                          if (catSnapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return ListTile(
+                                              title: Text("Loading..."),
+                                              subtitle: Text(
+                                                  transaction['description']),
+                                              trailing: Text(
+                                                  '${transaction['amount']} THB'),
+                                            );
+                                          } else if (catSnapshot.hasError) {
+                                            return ListTile(
+                                              title: Text("Unknown Category"),
+                                              subtitle: Text(
+                                                  transaction['description']),
+                                              trailing: Text(
+                                                  '${transaction['amount']} THB'),
+                                            );
+                                          } else {
+                                            final category = catSnapshot.data!;
+
+                                            return InkWell(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        UpdateTransactionPage(
+                                                      transaction: transaction,
+                                                      category: category,
                                                     ),
                                                   ),
                                                 );
-                                              }
-                                            },
-                                          );
+                                              },
+                                              child: ListTile(
+                                                leading: category['img_url'] !=
+                                                        null
+                                                    ? Image.asset(
+                                                        category['type'] == 'ex'
+                                                            ? "assets/categories/expense/${category['img_url']}"
+                                                            : "assets/categories/income/${category['img_url']}",
+                                                        width: 40,
+                                                        height: 40,
+                                                      )
+                                                    : Icon(Icons.category,
+                                                        color: Colors.black54),
+                                                title:
+                                                    Text(category['cat_name']),
+                                                subtitle: Text(
+                                                    transaction['description']),
+                                                trailing: Text(
+                                                  '${transaction['amount'].toStringAsFixed(2)} ฿',
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        category['type'] == 'ex'
+                                                            ? Colors.red
+                                                            : Colors.green,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         },
                                       );
-                                    }
-                                  },
-                                ),
-                                Container(
-                                  color: Colors.grey[200],
-                                  child: Center(
-                                    child: Text('This month transactions'),
+                                    },
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                                ],
+                              );
+                            },
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),

@@ -29,30 +29,70 @@ class _SignInPageState extends State<SignInPage> {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF002D62)),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "Signing in...",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
     try {
       final response = await _apiService.authenticateUser(email, password);
 
       if (response['message'] == "Authenticated successfully") {
-        // Set login status to true and store email
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
-        // Store email in SharedPreferences
-        _fetchUserIdByEmail(email); // Fetch userId by email
+        await _fetchUserIdByEmail(email); // Fetch userId by email
+
+        // Add delay before navigation
+        await Future.delayed(Duration(milliseconds: 1000));
 
         // Navigate to home page
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => BottomNavbarWidget()),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => BottomNavbarWidget()),
+          );
+        }
       } else {
-        setState(() {
-          _errorMessage = 'Invalid email or password.';
-        });
+        if (mounted) {
+          Navigator.pop(context); // Close loading dialog
+          setState(() {
+            _errorMessage = 'Invalid email or password.';
+          });
+        }
       }
     } catch (error) {
-      setState(() {
-        _errorMessage = 'Authentication failed. Please try again.';
-      });
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        setState(() {
+          _errorMessage = 'Authentication failed. Please try again.';
+        });
+      }
     }
   }
 

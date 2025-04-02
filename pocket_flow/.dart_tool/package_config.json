@@ -50,10 +50,22 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "csv",
+      "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/csv-6.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "cupertino_icons",
       "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/cupertino_icons-1.0.8",
       "packageUri": "lib/",
       "languageVersion": "3.1"
+    },
+    {
+      "name": "equatable",
+      "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/equatable-2.0.7",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "fake_async",
@@ -72,6 +84,12 @@
       "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/file-7.0.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "fl_chart",
+      "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/fl_chart-0.70.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
     },
     {
       "name": "flutter",
@@ -198,6 +216,12 @@
       "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
+    },
+    {
+      "name": "pie_chart",
+      "rootUri": "file:///Users/noppanut/.pub-cache/hosted/pub.dev/pie_chart-5.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "platform",
@@ -362,7 +386,7 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2025-03-31T12:09:55.718615Z",
+  "generated": "2025-04-02T08:40:44.387485Z",
   "generator": "pub",
   "generatorVersion": "3.6.1",
   "flutterRoot": "file:///Users/noppanut/flutter",
